@@ -1,22 +1,22 @@
-#############################
 Hybrid Cache for PHP >= 5.3.x
-#############################
+=============================
 
 Example of usage:
 
+```php
+<?php
+
 // require init.php for autoload classes
-
 require('lib/init.php');
-
-// add a MediaStorage to the Cache class:
 
 use Hybrid\Cache;
 use Hybrid\Storages\Memcache as MemcacheStorage;
 
+
+// add a MediaStorage to the Cache class:
 Cache::addStorageMedia( new MemcacheStorage('localhost') );
 
 // create a cache instance, with an identifier (can be a lot of values):
-
 $cache = Cache::create(__FILE__, 'list top users');
 
 // check if cache exists and is aviable
@@ -35,12 +35,14 @@ if ($data = $cache->getCache(true)) {
 
 // dump the result
 echo $result;
+
 // cache the result
 $cache->save($result);
 
-##################
+```
+
 Multiples storages
-##################
+------------------
 
 Currently, Hybrid Cache includes drivers for caching on Disk, Memcache
 and Redis, but you can extend it creating your own key/value storage
@@ -49,9 +51,8 @@ connector, implementing the Hybrid\StorageMedia interface.
 Storage instances can be assigned for reading and writing, and you can
 have multiple different storage systems.
 
-###########
 Replication
-###########
+-----------
 
 Consider you have the following scenario using Redis:
 
@@ -63,6 +64,7 @@ Consider you have the following scenario using Redis:
 
 You can set it up like this:
 
+```php
 use Hybrid\Storages\Redis as RedisStorage;
 
 Cache::addStorageMedia( new RedisStorage('10.1.30.1'), Cache::FOR_WRITE );
@@ -70,6 +72,7 @@ Cache::addStorageMedia( new RedisStorage('10.1.30.2'), Cache::FOR_READ );
 Cache::addStorageMedia( new RedisStorage('10.1.30.3'), Cache::FOR_READ );
 Cache::addStorageMedia( new RedisStorage('10.1.30.4'), Cache::FOR_READ );
 Cache::addStorageMedia( new RedisStorage('10.1.30.5'), Cache::FOR_READ );
+```
 
 By default, HybridCache uses a hash-based mechanism to balance load on
 multiple storage media. In this case, each server will receive the
@@ -80,20 +83,23 @@ server on the list if the first one doesn't return anything.
 To change the balancing method you should change the balanceMethod
 property of the instance:
 
+```php
 $cache = Cache::create('key');
 $cache->balanceMethod = Cache::B_RANDOM;
+```
 
 However, if you wish to apply the change globally for all new
 instances of the HybridCache class, you can define a constant:
 
+```php
 define('CACHE_BALANCE_METHOD',Cache::B_RANDOM);
+```
 
 Note that the random method is extremely inefficient when there are
 several master servers.
 
-######################
 Horizontal scalability
-######################
+----------------------
 
 Horizontal scalability can be achieved with any storage media and
 sometimes it's better than replication.
@@ -108,10 +114,13 @@ the order and amount of them.
 By default HybridCache uses a hash balance method, but if you want to
 be sure, you can set it explicitly:
 
+```php
 define('CACHE_BALANCE_METHOD',Cache::B_HASH);
+```
 
 To define a scalation array:
 
+```php
 use Hybrid\Storages\Memcache as MemcacheStorage;
 
 Cache::addStorageMedia( new MemcacheStorage('10.1.30.1') );
@@ -119,18 +128,20 @@ Cache::addStorageMedia( new MemcacheStorage('10.1.30.2') );
 Cache::addStorageMedia( new MemcacheStorage('10.1.30.3') );
 Cache::addStorageMedia( new MemcacheStorage('10.1.30.4') );
 Cache::addStorageMedia( new MemcacheStorage('10.1.30.5') );
+```
 
-Important: HybridCache doesn't support HA (High Availability) methods
+***Important: HybridCache doesn't support HA (High Availability) methods
 in this scenario yet. We expect to implement failover mechanisms on
-future versions.
+future versions.***
 
-########################
 Multiple array philosophy
-########################
+-------------------------
 
 In future versions we're planning to implement groups of arrays that
 can combine the efficency of scalability with the fault tolerance of
 replication.
+
+
 
                                                    README fixed by Andrés Gattinoni
                                                    http://www.tail-f.com.ar/
