@@ -56,15 +56,19 @@ Replication
 
 Consider you have the following scenario using Redis:
 
+```
  10.1.30.1   Redis master
        10.1.30.2  Redis replican
        10.1.30.3  Redis replican
        10.1.30.4  Redis replican
        10.1.30.5  Redis replican
+```
 
 You can set it up like this:
 
 ```php
+<?php
+
 use Hybrid\Storages\Redis as RedisStorage;
 
 Cache::addStorageMedia( new RedisStorage('10.1.30.1'), Cache::FOR_WRITE );
@@ -84,6 +88,8 @@ To change the balancing method you should change the balanceMethod
 property of the instance:
 
 ```php
+<?php
+
 $cache = Cache::create('key');
 $cache->balanceMethod = Cache::B_RANDOM;
 ```
@@ -92,6 +98,8 @@ However, if you wish to apply the change globally for all new
 instances of the HybridCache class, you can define a constant:
 
 ```php
+<?php
+
 define('CACHE_BALANCE_METHOD',Cache::B_RANDOM);
 ```
 
@@ -115,12 +123,16 @@ By default HybridCache uses a hash balance method, but if you want to
 be sure, you can set it explicitly:
 
 ```php
+<?php
+
 define('CACHE_BALANCE_METHOD',Cache::B_HASH);
 ```
 
 To define a scalation array:
 
 ```php
+<?php
+
 use Hybrid\Storages\Memcache as MemcacheStorage;
 
 Cache::addStorageMedia( new MemcacheStorage('10.1.30.1') );
