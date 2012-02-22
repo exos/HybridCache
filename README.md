@@ -10,6 +10,7 @@ Example of usage:
 require('lib/init.php');
 
 use Hybrid\Cache;
+// Use other name for no conflicts with Memcache Class
 use Hybrid\Storages\Memcache as MemcacheStorage;
 
 
@@ -22,8 +23,8 @@ $cache = Cache::create(__FILE__, 'list top users');
 // check if cache exists and is aviable
 
 if ($data = $cache->getCache(true)) {
-   // dump cache
-   echo $cache;
+   // dump cached data
+   echo $data;
    // stop the script (or the method, ect)
    exit(0);
 } else {
@@ -71,7 +72,10 @@ You can set it up like this:
 
 use Hybrid\Storages\Redis as RedisStorage;
 
+// Define Redis server for write only (master)
 Cache::addStorageMedia( new RedisStorage('10.1.30.1'), Cache::FOR_WRITE );
+
+// Define the rest of servers for read only
 Cache::addStorageMedia( new RedisStorage('10.1.30.2'), Cache::FOR_READ );
 Cache::addStorageMedia( new RedisStorage('10.1.30.3'), Cache::FOR_READ );
 Cache::addStorageMedia( new RedisStorage('10.1.30.4'), Cache::FOR_READ );
