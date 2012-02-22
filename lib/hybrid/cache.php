@@ -131,7 +131,7 @@ class Cache {
         $this->dtimeLimit	= defined('CACHE_DEPRECATED_LIMIT') ? CACHE_DEPRECATED_LIMIT	: 3600*1.2;
         $this->expireWaitingTime= defined('CACHE_EXPIRE_WAITING') ? CACHE_EXPIRE_WAITING	: 5;
         $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: $_SERVER['HOST'];
-        $this->balanceMethod	= defined('CACHE_BALANCE_NETHOD') ? CACHE_BALANCE_NETHOD	: self::B_HASH;
+        $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
 
         $this->_storages        = self::$_prestorages;
         

@@ -10,8 +10,8 @@ require('lib/init.php');
 
 // add a MediaStorage to the Cache class:
 
-use Hybrid/Cache;
-use Hybrid/Storages/Memcache as MemcacheStorage;
+use Hybrid\Cache;
+use Hybrid\Storages\Memcache as MemcacheStorage;
 
 Cache::addStorageMedia( new MemcacheStorage('localhost') );
 
@@ -37,3 +37,76 @@ if ($data = $cache->getCache(true)) {
 echo $result;
 // save the result on cache
 $cache->save($result);
+
+##################
+Multiples storages
+##################
+
+Actualy, Hybrid Cache supports Disk, Memcache and Redis technologies, but you can extend this creating your own key/value storage connector, implements Hybrid\StorageMedia interface.
+
+The storages instances can be defined by read or write, and can be multiples diferents storages.
+
+###########
+Replication
+###########
+
+Considering that you have a stage set, with example, Redis:
+
+ 10.1.30.1   Redis master
+        10.1.30.2  Redis replican
+        10.1.30.3  Redis replican
+        10.1.30.4  Redis replican
+        10.1.30.5  Redis replican
+
+Yo can:
+
+use Hybrid\Storages\Redis as RedisStorage;
+
+Cache::addStorageMedia( new RedisStorage('10.1.30.1'), Cache::FOR_WRITE );
+Cache::addStorageMedia( new RedisStorage('10.1.30.2'), Cache::FOR_READ );
+Cache::addStorageMedia( new RedisStorage('10.1.30.3'), Cache::FOR_READ );
+Cache::addStorageMedia( new RedisStorage('10.1.30.4'), Cache::FOR_READ );
+Cache::addStorageMedia( new RedisStorage('10.1.30.5'), Cache::FOR_READ );
+
+For default HybridCache use a hash based mechanism for balance multiple storages media, in this case, the same servers will recive the same petitions. For replication stage, a random server petition is more efective, HybridCache try with oter server in the list if the first don't return mothing.
+
+For change the balance method, you can change a balanceMethod properties for a instance:
+
+$cache = Cache::create('key');
+$cache->balanceMethod = Cache::B_RANDOM;
+
+But if you want apply thia to all new instances of Hybrid Cache class, yo can define a defined:
+
+define('CACHE_BALANCE_METHOD',Cache::B_RANDOM);
+
+The randon method is totaly inefficient if there are various masters
+
+######################
+Horizontal scalability
+######################
+
+The horizontal scalability can be done with any media storage type, and occasionally best idea is to replication.
+
+In the horizontal scalability, defines a number of Storage medias, and the balanced is based by a hash generate by the key vale, all backends will use the same algorithm so all will go to find the cache to the corresponding storage media. Is very important define the same storages with the same order in all backends servers, since the algorithm is based on the amount and order of these.
+
+By default HybridCache use a hash balance method, but if you want are sure:
+
+define('CACHE_BALANCE_METHOD',Cache::B_HASH);
+
+For start the scalability array:
+
+use Hybrid\Storages\Memcache as MemcacheStorage;
+
+Cache::addStorageMedia( new MemcacheStorage('10.1.30.1') );
+Cache::addStorageMedia( new MemcacheStorage('10.1.30.2') );
+Cache::addStorageMedia( new MemcacheStorage('10.1.30.3') );
+Cache::addStorageMedia( new MemcacheStorage('10.1.30.4') );
+Cache::addStorageMedia( new MemcacheStorage('10.1.30.5') );
+
+Important: Still HybridCache not support methods for HA (high availability) in this scenario. future versions are expected to implement fault tolerance.
+
+########################
+Various array philosophy
+########################
+
+Future versions may also implement groups of arrays to combine the efficiency of scalability with fault tolerance of replication.
