@@ -59,9 +59,11 @@ class PageCache {
             $type = $this->defaultContentType;
         }
         
+	$code = (int) $code;
+
         if ($page = $this->_cache->getCache(true)) {
-            header('HTTP/1.1 200 OK');
-            header("Content-type: {$this->defaultContentType}");
+            header("HTTP/1.1 $code OK");
+            header("Content-type: {$type}");
             print $page;
             exit($termcode);
         }
