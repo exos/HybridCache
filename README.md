@@ -158,13 +158,11 @@ can combine the efficency of scalability with the fault tolerance of
 replication.
 
 
-How use it??
+Who use it??
 ============
 
 DePaginas
 ---------
-
-.. image:: http://static.depaginas.com.ar/images/dp_ar/logo.png
 
 Website with several sections, web directory, classifieds, news and more
 
@@ -173,8 +171,6 @@ http://depaginas.com.ar
 
 Periodico Tribuna
 -----------------
-
-.. image:: http://www.periodicotribuna.com.ar/images/logo.png
 
 Argentinan digital newspaper  
 
