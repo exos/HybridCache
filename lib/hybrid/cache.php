@@ -160,11 +160,21 @@ class Cache {
         $this->_storages = array();
     }
     
-    public function addStorage(StorageMedia $storage) {
-        $this->_storages = (object) array(
+    public function addStorage(StorageMedia $storage, $for = self::FOR_MIXED) {
+        
+        $storageMedia = (object) array(
             'connected' => false,
-            'store' => $storage
+            'store' => $storage,
+            'for'   => $for
         );
+        
+        if ($for == self::FOR_MIXED) {
+            $this->_storages[self::FOR_READ][] = $storageMedia;
+            $this->_storages[self::FOR_WRITE][] = $storageMedia;
+        } else {
+            $this->_storages[$for][] = $storageMedia;
+        }
+
     }
     
     protected function get () {
