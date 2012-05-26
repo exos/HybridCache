@@ -60,14 +60,14 @@ class Cache {
     protected $_prefix = "";
     
     /**
-     * Identificador (nombre único)
+     * Identificador (nombre ??nico)
      * @var string
      */
     
     protected $_identifier;
 
     /**
-     * Objectos de conexión a los storages
+     * Objectos de conexi??n a los storages
      * @var $_storages
      */
     
@@ -374,7 +374,7 @@ class Cache {
      */
     
     public function cancel() {
-        $this->setStatus(self::S_CREATION);
+        $this->setStatus(self::S_CANCELED);
     }
     
     /**
