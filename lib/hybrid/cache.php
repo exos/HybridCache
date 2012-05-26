@@ -91,7 +91,19 @@ class Cache {
     
     protected $_status;
     
+    /**
+     * Si se setearon en la instancia los StorageMedia
+     * 
+     * @var bool
+     */
+    
     protected $_storagesChange = false;
+    
+    /**
+     * Metodo de balanceo entre storages medias
+     * 
+     * @var string 
+     */
     
     public $balanceMethod;
     
@@ -123,7 +135,7 @@ class Cache {
      */
     
     public static function create () {
-        return new self (serialize(func_get_args()));
+        return new self (sha1(serialize(func_get_args())));
     }
     
     /**
@@ -131,7 +143,21 @@ class Cache {
      */
     
     public function __construct() {
-        $identifier = sha1(serialize(func_get_args()));
+        
+        if (func_num_args() == 1) {
+            
+            // Sha-1 pattern from: http://pregcopy.com/exp/23
+            
+            if (preg_match('/^[a-f0-9]{40}$/i', func_get_arg(0))) {
+               $identifier = func_get_arg(0);
+           } else {
+               $identifier = sha1(serialize(func_get_args()));
+           }
+           
+        } else {
+            $identifier = sha1(serialize(func_get_args()));
+        }
+        
         $this->reset($identifier, self::EVER);
     }
     
