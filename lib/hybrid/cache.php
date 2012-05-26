@@ -50,6 +50,10 @@ class Cache {
     const FOR_WRITE = 'write';
     const FOR_MIXED = 'mixed';
     
+    const IF_RTSET = 'if runtime set';
+    const EVER     = 'ever';
+    const NEVER    = 'never';
+    
     static private $_prestorages;
     
     /**
@@ -87,6 +91,8 @@ class Cache {
     
     protected $_status;
     
+    protected $_storagesChange = false;
+    
     public $balanceMethod;
     
     /**
@@ -109,7 +115,7 @@ class Cache {
      */
 
     public $expireWaitingTime;
-
+    
     /**
      * Devuelve una instancia nueva, para usar tipo fluent: WonderCacheHybrid::create($ident)->getCache();
      * 
@@ -125,15 +131,32 @@ class Cache {
      */
     
     public function __construct() {
+        $identifier = sha1(serialize(func_get_args()));
+        $this->reset($identifier, self::EVER);
+    }
+    
+    public function reset($identifier, $resetStorages = self::IF_RTSET) {
         
-        $this->_identifier = sha1(serialize(func_get_args()));
+        $this->_identifier      = $identifier;
         $this->timeLimit	= defined('CACHE_EXPIRE_TIME') ? CACHE_EXPIRE_TIME		: 3600;
         $this->dtimeLimit	= defined('CACHE_DEPRECATED_LIMIT') ? CACHE_DEPRECATED_LIMIT	: 3600*1.2;
         $this->expireWaitingTime= defined('CACHE_EXPIRE_WAITING') ? CACHE_EXPIRE_WAITING	: 5;
         $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: (isset($_SERVER['HOST']) ? isset($_SERVER['HOST']) : '') ;
         $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
-
-        $this->_storages        = self::$_prestorages;
+        
+        switch ($resetStorages) {
+            
+            case (self::EVER):
+                $this->_storages = self::$_prestorages;
+                break;
+            case (self::NEVER):
+                break;
+            case (IF_RTSET):
+                if ($this->_storagesChange) {
+                    $this->_storages = self::$_prestorages;
+                }
+                break;
+        }
         
     }
 
@@ -157,10 +180,13 @@ class Cache {
     }
     
     public function clearStorages() {
+        $this->_storagesChange = true;
         $this->_storages = array();
     }
     
     public function addStorage(StorageMedia $storage, $for = self::FOR_MIXED) {
+        
+        $this->_storagesChange = true;
         
         $storageMedia = (object) array(
             'connected' => false,
