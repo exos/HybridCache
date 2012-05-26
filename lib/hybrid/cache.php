@@ -374,7 +374,7 @@ class Cache {
      */
     
     public function cancel() {
-        $this->setStatus(self::S_CREATION);
+        $this->setStatus(self::S_CANCELED);
     }
     
     /**
