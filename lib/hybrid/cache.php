@@ -9,7 +9,7 @@
  *             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
  *                     Version 2, December 2004
  *  
- *  Copyright (C) 2011 Oscar J. Gentilezza Arenas (a.k.a exos) <exos@exodica.com.ar>
+ *  Copyright (C) 2012 Oscar J. Gentilezza Arenas (a.k.a exos) <oscar@gentisoft.com>
  *
  *  Everyone is permitted to copy and distribute verbatim or modified
  *  copies of this license document, and changing it is allowed as long
@@ -24,8 +24,8 @@
 /**
  * Cache
  *
- * @author Oscar J. Gentilezza Arenas (a.k.a exos) <exos@exodica.com.ar>
- * @version 0.7
+ * @author Oscar J. Gentilezza Arenas (a.k.a exos) <oscar@gentisoft.com>
+ * @version 0.8
  * @package Hybrid
  * @license WTFPL 2.0, http://sam.zoy.org/wtfpl/
  */
@@ -130,7 +130,7 @@ class Cache {
         $this->timeLimit	= defined('CACHE_EXPIRE_TIME') ? CACHE_EXPIRE_TIME		: 3600;
         $this->dtimeLimit	= defined('CACHE_DEPRECATED_LIMIT') ? CACHE_DEPRECATED_LIMIT	: 3600*1.2;
         $this->expireWaitingTime= defined('CACHE_EXPIRE_WAITING') ? CACHE_EXPIRE_WAITING	: 5;
-        $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: $_SERVER['HOST'];
+        $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: (isset($_SERVER['HOST']) ? isset($_SERVER['HOST']) : '') ;
         $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
 
         $this->_storages        = self::$_prestorages;
