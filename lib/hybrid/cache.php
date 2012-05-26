@@ -60,14 +60,14 @@ class Cache {
     protected $_prefix = "";
     
     /**
-     * Identificador (nombre único)
+     * Identificador (nombre ??nico)
      * @var string
      */
     
     protected $_identifier;
 
     /**
-     * Objectos de conexión a los storages
+     * Objectos de conexi??n a los storages
      * @var $_storages
      */
     
@@ -411,6 +411,54 @@ class Cache {
             }
             
             return null;
+        }
+        
+    }
+
+   /**
+     * Devuelve la cache o devuelve lo que retorna el callback luego de cacharlo
+     * 
+     * @param function callback   Callback a ajecutar para generar la cache
+     * @return mixed              Dato cacheado.
+     *
+     * @param bool $debile        Modo debil, si la cache se esta actualizando devuelve la anterior
+     * @param function callback   Callback a ajecutar para generar la cache
+     * @return mixed              Dato cacheado.
+     */
+
+    public function getCacheOr () {
+        
+        if (func_num_args() == 1) {
+            $debile = true;
+            $cb = func_get_arg(0);
+        } elseif (func_num_args() == 2) {
+            $debile = (bool) func_get_arg(0);
+            $cb = func_get_arg(1);
+        } else {
+            throw new \Exception('Bad parameters format');
+        }
+
+        if (!is_callable($cb)) {
+            throw new \Exception('The callback isn\'t callable');
+        }
+        
+        if ($cache = $this->getCache($debile)) {
+            return $cache;
+        } else {
+            
+            $this->setStatusSaving();
+            
+            try {
+                $result = $cb($this);
+            } catch (\Exception $e){
+                $this->cancel();
+                throw $e;
+            }
+            
+            $this->saveInCache($result);
+            
+            return $result;
+            
         }
         
     }
