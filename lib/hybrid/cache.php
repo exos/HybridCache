@@ -25,7 +25,7 @@
  * Cache
  *
  * @author Oscar J. Gentilezza Arenas (a.k.a exos) <oscar@gentisoft.com>
- * @version 0.8
+ * @version 0.8.5
  * @package Hybrid
  * @license WTFPL 2.0, http://sam.zoy.org/wtfpl/
  */
@@ -49,10 +49,6 @@ class Cache {
     const FOR_READ = 'read';
     const FOR_WRITE = 'write';
     const FOR_MIXED = 'mixed';
-    
-    const IF_RTSET = 'if runtime set';
-    const EVER     = 'ever';
-    const NEVER    = 'never';
     
     static private $_prestorages;
     
@@ -127,6 +123,43 @@ class Cache {
      */
 
     public $expireWaitingTime;
+
+    /**
+     * Esta parte corresponde a la implementacion del Pool de objetos: 
+     */
+    
+    /*
+     * Bool, si se va a usar el pool de objetos o no
+     */
+    
+    public static $use_pool = false;
+    
+    /*
+     * Maxima cantidad de isntancias en el pool de objetos
+     */
+    
+    public static $pool_max_objects = 3;
+    
+    /*
+     * Cantidad de veces que puede ser reutilizada una istancia
+     */
+    
+    public $pool_max_resets;
+    
+    /*
+     * Las veces que se reseteo este objeto
+     */
+    
+    protected $resets = 0;
+    
+    protected static $pool = array();
+    
+    /*
+     * Microtime donde fue creado el objeto (solo para stats de pool)
+     */
+    public $__created = null;
+    
+    public $__lastuse = null;
     
     /**
      * Devuelve una instancia nueva, para usar tipo fluent: WonderCacheHybrid::create($ident)->getCache();
@@ -135,10 +168,29 @@ class Cache {
      */
     
     public static function create () {
-        return new self (sha1(serialize(func_get_args())));
+        
+        $key = sha1(serialize(func_get_args()));
+        
+        if (static::$use_pool) {
+            
+            if (count(static::$pool) >= 1) {
+                $instance = array_shift(static::$pool);
+                $pmr = $instance->pool_max_resets;
+                $instance->reset($key);
+                $instance->pool_max_resets = $pmr;
+            } else {
+                $instance = new self($key);
+            }
+            
+            return $instance;
+            
+        } else {
+            return new self ($key);
+        }
+        
     }
     
-    /**
+    /**$_status
      * Constructor
      */
     
@@ -158,10 +210,45 @@ class Cache {
             $identifier = sha1(serialize(func_get_args()));
         }
         
-        $this->reset($identifier, self::EVER);
+        $this->__created = microtime(true);
+        $this->reset($identifier);
     }
     
-    public function reset($identifier, $resetStorages = self::IF_RTSET) {
+    function __destruct() {
+    
+        if (static::$use_pool) {
+            if (count(static::$pool) < static::$pool_max_objects && $this->resets <= $this->pool_max_resets) {
+                array_push(static::$pool, $this);
+            }
+        }
+      
+    }
+    
+    /*
+     * Clear object, set all properties to null
+     */
+    
+    private function clear() {
+        
+        $this->_metadata = null;
+        $this->_status   = null;
+        
+        $this->_identifier      = null;
+        $this->timeLimit	= null;
+        $this->dtimeLimit	= null;
+        $this->expireWaitingTime= null;
+        $this->_prefix		= null;
+        $this->balanceMethod	= null;
+        $this->_storages = null;
+        
+    }
+    
+    /*
+     * Reset properties to default
+     * @param string    identifier      Final identifier
+     */
+    
+    public function reset($identifier) {
         
         $this->_identifier      = $identifier;
         $this->timeLimit	= defined('CACHE_EXPIRE_TIME') ? CACHE_EXPIRE_TIME		: 3600;
@@ -169,20 +256,15 @@ class Cache {
         $this->expireWaitingTime= defined('CACHE_EXPIRE_WAITING') ? CACHE_EXPIRE_WAITING	: 5;
         $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: (isset($_SERVER['HOST']) ? isset($_SERVER['HOST']) : '') ;
         $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
+        $this->pool_max_resets	= defined('CACHE_POOL_MAXRESETS') ? CACHE_POOL_MAXRESETS	: 5;
         
-        switch ($resetStorages) {
-            
-            case (self::EVER):
-                $this->_storages = self::$_prestorages;
-                break;
-            case (self::NEVER):
-                break;
-            case (IF_RTSET):
-                if ($this->_storagesChange) {
-                    $this->_storages = self::$_prestorages;
-                }
-                break;
-        }
+        $this->_metadata = null;
+        $this->_status   = null;
+        
+        $this->_storages = self::$_prestorages;
+        
+        $this->resets++;
+        $this->__lastuse = microtime(true);
         
     }
 
@@ -513,6 +595,30 @@ class Cache {
             
         }
         
+    }
+    
+    public function getResets() {
+        return $this->resets;
+    }
+    
+    public function getPoolStatus () {
+        
+        $lepool = array();
+        
+        foreach (static::$pool as $obj) {
+            $lepool[] = array(
+                'created' => $obj->__created,
+                'las use' => $obj->__lastuse,
+                'resets' => $obj->getResets(),
+            );
+        }
+        
+        return array (
+            'max objects on pool' => static::$pool_max_objects,
+            'max resets by object' => $this->pool_max_resets,
+            'total objects' => count(static::$pool),
+            'pool' => $lepool
+        );
     }
         
 }
