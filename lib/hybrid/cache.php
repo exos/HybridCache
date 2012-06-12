@@ -25,7 +25,7 @@
  * Cache
  *
  * @author Oscar J. Gentilezza Arenas (a.k.a exos) <oscar@gentisoft.com>
- * @version 0.8.5
+ * @version 0.8.7
  * @package Hybrid
  * @license WTFPL 2.0, http://sam.zoy.org/wtfpl/
  */
@@ -309,6 +309,10 @@ class Cache {
             $this->_storages[$for][] = $storageMedia;
         }
 
+    }
+    
+    public function setPrefix ($prefix) {
+	$this->_prefix = $prefix;
     }
     
     protected function get () {
