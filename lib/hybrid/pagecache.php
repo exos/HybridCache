@@ -38,7 +38,7 @@ class PageCache {
     public function __construct ($identifier = null) {
         
         if (is_null($identifier)) {
-            $this->_identifier = $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+            $this->_identifier = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         } else {
             $this->_identifier = $identifier;
         }
