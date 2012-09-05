@@ -8,9 +8,18 @@ use Hybrid\Cache;
 use Hybrid\PageCache;
 use Hybrid\storages\Redis as RedisStorage;
 
-Cache::addStorageMedia( new RedisStorage() );
+$storage = new RedisStorage();
+$storage->setFormat(RedisStorage::F_CLEAN);
 
-$page = new PageCache('http://www.mihost.com/page_to_cache.html');
+Cache::addStorageMedia( $storage );
+
+
+$page = new PageCache($argv[1]);
+
+$page->setKeyEncodeMethod( Cache::K_UNSERIALIZED_URL );
+
+$page->saveClean(true);
+
 $page->run();
 
 
@@ -21,3 +30,5 @@ echo "Example";
 ?>
 
 No PHP content
+
+

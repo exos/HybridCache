@@ -156,7 +156,7 @@ class Cache {
     
     public $encode_key_method;
     
-    public $save_clean;
+    private $save_clean;
     
     /*
      * Las veces que se reseteo este objeto
@@ -238,6 +238,10 @@ class Cache {
             }
         }
       
+    }
+    
+    public function saveClean($cond = true) {
+        $this->save_clean = $cond;
     }
     
     /*
@@ -381,7 +385,7 @@ class Cache {
     }
     
     protected function get () {
-        
+    
         switch ($this->balanceMethod) {
             
             case self::B_HASH:
@@ -422,6 +426,7 @@ class Cache {
     
     protected function set ($val,$expire) {
         
+        
         switch ($this->balanceMethod) {
             
             case self::B_HASH:
@@ -461,11 +466,11 @@ class Cache {
         
             if ($data) {
                 return array(
-                    'status' => self::S_USABLE;
+                    'status' => self::S_USABLE,
                     'data' => $data
                 );
             } else {
-                return null
+                return null;
             }
             
         }
@@ -529,8 +534,11 @@ class Cache {
         $this->_metadata = null;
         
         if ($this->save_clean) {
+        
+        
             if (is_array($extras) && isset($extras['data'])) {
                 $this->set($extras['data'], $this->dtimeLimit + $this->timeLimit );
+                return;
             } else {
                 // Ignore
                 return;
@@ -567,7 +575,7 @@ class Cache {
      */
     
     public function setStatusSaving () {
-        
+       
         if (in_array($this->getStatus(), array(self::S_CANCELED, self::S_DONTEXIST, self::S_ERROR))) {
             $this->setStatus(self::S_CREATION, array(
                 'expire'    => time() + $this->expireWaitingTime,
@@ -618,7 +626,7 @@ class Cache {
         if ($this->getStatus() == self::S_USABLE) {
             $mb = $this->getMetadata();
             return $mb['data'];
-        } elseif ($debile && $this->getStatus() == self::S_UPDATE) {
+        } elseif ($debile && ($this->getStatus() == self::S_UPDATE || $this->getStatus() == self::S_EXPIRED)) {
             $mb = $this->getMetadata();
             return $mb['data'];
         } elseif ($this->getStatus() == self::S_UPDATE || $this->getStatus() == self::S_CREATION) {
@@ -639,6 +647,8 @@ class Cache {
                                 
             }
             
+            return null;
+        } else {
             return null;
         }
         

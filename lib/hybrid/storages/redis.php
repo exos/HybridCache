@@ -40,6 +40,7 @@ class Redis implements StorageMedia {
 
     const F_PHP = 10;
     const F_JSON = 20;
+    const F_CLEAN = 30;
     
     private $_host = 'localhost';
     private $_port = 6379;
@@ -58,6 +59,8 @@ class Redis implements StorageMedia {
             case self::F_JSON:
                 return json_encode($val);
                 break;
+            case self::F_CLEAN:
+                return $val;
             default:
                 throw new Exception("Unknow format");
         }
@@ -74,6 +77,8 @@ class Redis implements StorageMedia {
             case self::F_JSON:
                 return json_decode($val);
                 break;
+            case self::F_CLEAN:
+                return $val;
             default:
                 throw new Exception("Unknow format");
         }
@@ -130,9 +135,11 @@ class Redis implements StorageMedia {
 
         // por algun motivo no exset ni set con el parametro de expiracion funcionaron, asi si.
         // For some reason, the exset method and the set method width expiration parameter don't work
-        
+
         $this->_redis->set($key, $this->encode($value));
         if ($expire) $this->_redis->setTimeout($key,$expire);
+        
+        
     }
 
 }

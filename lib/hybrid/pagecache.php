@@ -34,6 +34,8 @@ class PageCache {
     protected $_cache;
     
     public $defaultContentType;
+    
+    public $compress = false;
         
     public function __construct ($identifier = null) {
         
@@ -53,6 +55,10 @@ class PageCache {
         
     }
     
+    public function saveClean ($cond) {
+        $this->_cache->saveClean($cond);
+    }
+    
     public function setKeyEncodeMethod ($method) {
         $this->_cache->encode_key_method = $method;
     }
@@ -70,13 +76,17 @@ class PageCache {
             header("Content-type: {$type}");
             print $page;
             exit($termcode);
+        } else {
+            $this->_cache->setStatusSaving();
+            ob_start(array($this,'save'));
         }
-        
-        ob_start(array($this,'save'));
                 
     }
     
     public function save($buffer) {
+    
+        if ($this->compress) $buffer = gzencode($buffer, 9);
+    
         $this->_cache->save($buffer);
         return $buffer;
     }
