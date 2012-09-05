@@ -53,13 +53,17 @@ class PageCache {
         
     }
     
+    public function setKeyEncodeMethod ($method) {
+        $this->_cache->encode_key_method = $method;
+    }
+    
     public function run ($code = 200, $type = null, $termcode = 0) {
         
         if (is_null($type)) {
             $type = $this->defaultContentType;
         }
         
-	$code = (int) $code;
+        $code = (int) $code;
 
         if ($page = $this->_cache->getCache(true)) {
             header("HTTP/1.1 $code OK");

@@ -25,7 +25,7 @@
  * Cache
  *
  * @author Oscar J. Gentilezza Arenas (a.k.a exos) <oscar@gentisoft.com>
- * @version 0.8.5
+ * @version 1.0.0-feature-13, see https://github.com/exos/HybridCache/issues/13
  * @package Hybrid
  * @license WTFPL 2.0, http://sam.zoy.org/wtfpl/
  */
@@ -42,6 +42,10 @@ class Cache {
     const S_ERROR = 5;
     const S_EXPIRED = 6;
     const S_TRANSFERED = 7;
+    
+    const K_SERIALIZED_MD5 = '/^[a-f0-9]{32}$';
+    const K_SERIALIZED_SHA1 = '/^[a-f0-9]{40}$';
+    const K_UNSERIALIZED_URL = false;
     
     const B_HASH = 10;
     const B_RANDOM = 20;
@@ -147,6 +151,12 @@ class Cache {
     public $pool_max_resets;
     
     /*
+     * Metodo utilizado para encodear la key
+     */
+    
+    public $encode_key_method;
+    
+    /*
      * Las veces que se reseteo este objeto
      */
     
@@ -169,23 +179,31 @@ class Cache {
     
     public static function create () {
         
-        $key = sha1(serialize(func_get_args()));
+        if (func_num_args() == 1) {
+            if ($this->isValidKey(func_get_arg(0))) {
+                $identifier = func_get_arg(0);
+            } else {
+                $identifier = $this->encodeKey(func_get_args());
+            }
+        } else {
+            $identifier = $this->encodeKey(func_get_args());
+        }
         
         if (static::$use_pool) {
             
             if (count(static::$pool) >= 1) {
                 $instance = array_shift(static::$pool);
                 $pmr = $instance->pool_max_resets;
-                $instance->reset($key);
+                $instance->reset($identifier);
                 $instance->pool_max_resets = $pmr;
             } else {
-                $instance = new self($key);
+                $instance = new self($identifier);
             }
             
             return $instance;
             
         } else {
-            return new self ($key);
+            return new self ($identifier);
         }
         
     }
@@ -197,24 +215,20 @@ class Cache {
     public function __construct() {
         
         if (func_num_args() == 1) {
-            
-            // Sha-1 pattern from: http://pregcopy.com/exp/23
-            
-            if (preg_match('/^[a-f0-9]{40}$/i', func_get_arg(0))) {
-               $identifier = func_get_arg(0);
-           } else {
-               $identifier = sha1(serialize(func_get_args()));
-           }
-           
+            if ($this->isValidKey(func_get_arg(0))) {
+                $identifier = func_get_arg(0);
+            } else {
+                $identifier = $this->encodeKey(func_get_args());
+            }
         } else {
-            $identifier = sha1(serialize(func_get_args()));
+            $identifier = $this->encodeKey(func_get_args());
         }
         
         $this->__created = microtime(true);
         $this->reset($identifier);
     }
     
-    function __destruct() {
+    public function __destruct() {
     
         if (static::$use_pool) {
             if (count(static::$pool) < static::$pool_max_objects && $this->resets <= $this->pool_max_resets) {
@@ -222,6 +236,57 @@ class Cache {
             }
         }
       
+    }
+    
+    /*
+     * Check key
+     */
+     
+    protected function isValidKey($key) {
+        
+        if ($this->encode_key_method) {
+            return preg_match($this->encode_key_method, $key);
+        } else {
+            return true;
+        }
+        
+    }
+    
+    /*
+     * Encode key
+     */
+    
+    protected function encodeKey($targs) {
+    
+        switch ($this->encode_key_method) {
+        
+            case self::K_SERIALIZED_MD5:
+                return md5(serialize($targs));
+            case self::K_SERIALIZED_SHA1:
+                return sha1(serialize($targs));
+            case self::K_UNSERIALIZED_URL:
+                if (is_string($targs)) {
+                    return $targs;
+                }
+                
+                if (is_array($targs)) {
+                    if (count($targs) > 1) {
+                        throw new Exception('The method K_UNSERIALIZED_URL needs to receive a unique string as indetifier');
+                    }
+                    
+                    if (isset($targs[0]) && is_string($targs[0])) {
+                        return $targs[0];
+                    } else {
+                        throw new Exception('Error reciving identifier, the K_UNSERIALIZED_URL methods needs a simple string');
+                    }
+                    
+                }
+                break;
+                
+            default:
+                throw new Exception('Key encode method not implemented');
+        }
+    
     }
     
     /*
@@ -257,6 +322,7 @@ class Cache {
         $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: (isset($_SERVER['HOST']) ? isset($_SERVER['HOST']) : '') ;
         $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
         $this->pool_max_resets	= defined('CACHE_POOL_MAXRESETS') ? CACHE_POOL_MAXRESETS	: 5;
+        $this->encode_key_method = defined('CACHE_KEY_ENCODE_METHOD') ? CACHE_KEY_ENCODE_METHOD   : self::K_SERIALIZED_SHA1;
         
         $this->_metadata = null;
         $this->_status   = null;
@@ -500,7 +566,7 @@ class Cache {
     }
 
     public function save($data) {
-	$this->saveInCache($data);
+        $this->saveInCache($data);
     }
     
     /**
