@@ -40,6 +40,7 @@ class Memcache implements StorageMedia {
 
     const F_PHP = 10;
     const F_JSON = 20;
+    const F_CLEAN = 30;
     
     private $_host = 'localhost';
     private $_port = 11211;
@@ -60,6 +61,8 @@ class Memcache implements StorageMedia {
             case self::F_JSON:
                 return json_encode($val);
                 break;
+            case self::F_CLEAN:
+                return $val;
             default:
                 throw new Exception("Unknow format");
         }
@@ -76,6 +79,8 @@ class Memcache implements StorageMedia {
             case self::F_JSON:
                 return json_decode($val);
                 break;
+            case self::F_CLEAN:
+                return $val;
             default:
                 throw new Exception("Unknow format");
         }

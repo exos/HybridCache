@@ -156,6 +156,8 @@ class Cache {
     
     public $encode_key_method;
     
+    public $save_clean;
+    
     /*
      * Las veces que se reseteo este objeto
      */
@@ -163,7 +165,7 @@ class Cache {
     protected $resets = 0;
     
     protected static $pool = array();
-    
+        
     /*
      * Microtime donde fue creado el objeto (solo para stats de pool)
      */
@@ -323,6 +325,7 @@ class Cache {
         $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
         $this->pool_max_resets	= defined('CACHE_POOL_MAXRESETS') ? CACHE_POOL_MAXRESETS	: 5;
         $this->encode_key_method = defined('CACHE_KEY_ENCODE_METHOD') ? CACHE_KEY_ENCODE_METHOD   : self::K_SERIALIZED_SHA1;
+        $this->save_clean       = defined('CACHE_SAVE_CLEAN') ? CACHE_SAVE_CLEAN   : false;
         
         $this->_metadata = null;
         $this->_status   = null;
@@ -454,6 +457,19 @@ class Cache {
                 
         $data = $this->get();
         
+        if ($this->save_clean) {
+        
+            if ($data) {
+                return array(
+                    'status' => self::S_USABLE;
+                    'data' => $data
+                );
+            } else {
+                return null
+            }
+            
+        }
+        
         if ($data) {
             $this->_metadata = $data;
             return $data;
@@ -477,6 +493,10 @@ class Cache {
         $md = $this->getMetadata($force);
         
         if ($md) {
+        
+            if ($this->save_clean) {
+                return self::S_USABLE;
+            }
             
             if (($md['status'] == self::S_CREATION || $md['status'] == self::S_UPDATE) && $md['expire'] < time()) {
                 $this->_status = self::S_CANCELED;
@@ -507,6 +527,15 @@ class Cache {
         
         $this->_status = $status;
         $this->_metadata = null;
+        
+        if ($this->save_clean) {
+            if (is_array($extras) && isset($extras['data'])) {
+                $this->set($extras['data'], $this->dtimeLimit + $this->timeLimit );
+            } else {
+                // Ignore
+                return;
+            }
+        }
         
         $md = $this->getMetadata();
         
