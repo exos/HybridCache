@@ -125,7 +125,7 @@ class PageCache {
     public function save($buffer) {
     
         foreach ($this->_filters as $filter) {
-            $buffer = call_user_func_array($filter->func,array_merge([$buffer], $filter->params));
+            $buffer = call_user_func_array($filter->func,array_merge(Array($buffer), $filter->params));
         }
         
         if ($this->_saveFilters || $this->_saveFilters) {
@@ -135,11 +135,11 @@ class PageCache {
         }
         
         foreach ($this->_saveFilters as $filter) {
-            $sbuffer = call_user_func_array($filter->func,array_merge([$sbuffer], $filter->params));
+            $sbuffer = call_user_func_array($filter->func,array_merge(Array($sbuffer), $filter->params));
         }
         
         foreach ($this->_filters as $filter) {
-            $buffer = call_user_func_array($filter->func,array_merge([$buffer], $filter->params));
+            $buffer = call_user_func_array($filter->func,array_merge(Array($buffer), $filter->params));
         }
     
         $this->_cache->save($sbuffer);
