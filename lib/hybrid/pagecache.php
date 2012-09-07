@@ -27,16 +27,20 @@
 
 namespace Hybrid;
 
+use \Exception;
+
 class PageCache {
     
     protected $_identifier;
     protected $_prebuffer;
     protected $_cache;
     
-    public $defaultContentType;
+    private $_filters = [];
+    private $_outputFilters = [];
+    private $_saveFilters = [];
     
-    public $compress = false;
-        
+    public $defaultContentType;
+            
     public function __construct ($identifier = null) {
         
         if (is_null($identifier)) {
@@ -63,6 +67,41 @@ class PageCache {
         $this->_cache->encode_key_method = $method;
     }
     
+    public function addOutputFilter($filter, array $params = []) {
+    
+        if (is_string($filter) || is_callable($filter)) {
+            $this->_outputFilters[] = (object) [
+                'func'   => $filter,
+                'params' => $params
+            ];
+        } else {
+            throw new Exception("Invalid function");
+        }
+    }
+    
+    public function addSaveFilter($filter, array $params = []) {
+    
+        if (is_string($filter) || is_callable($filter)) {
+            $this->_saveFilters[] = (object) [
+                'func'   => $filter,
+                'params' => $params
+            ];
+        } else {
+            throw new Exception("Invalid function");
+        }
+    }
+    
+    public function addFilter($filter, array $params = []) {
+        if (is_string($filter) || is_callable($filter)) {
+            $this->_filters[] = (object) [
+                'func'   => $filter,
+                'params' => $params
+            ];
+        } else {
+            throw new Exception("Invalid function");
+        }
+    }
+    
     public function run ($code = 200, $type = null, $termcode = 0) {
         
         if (is_null($type)) {
@@ -85,9 +124,25 @@ class PageCache {
     
     public function save($buffer) {
     
-        if ($this->compress) $buffer = gzencode($buffer, 9);
+        foreach ($this->_filters as $filter) {
+            $buffer = call_user_func_array($filter->func,array_merge([$buffer], $filter->params));
+        }
+        
+        if ($this->_saveFilters || $this->_saveFilters) {
+            $sbuffer = $buffer;
+        } else {
+            $sbuffer = &$buffer;
+        }
+        
+        foreach ($this->_saveFilters as $filter) {
+            $sbuffer = call_user_func_array($filter->func,array_merge([$sbuffer], $filter->params));
+        }
+        
+        foreach ($this->_filters as $filter) {
+            $buffer = call_user_func_array($filter->func,array_merge([$buffer], $filter->params));
+        }
     
-        $this->_cache->save($buffer);
+        $this->_cache->save($sbuffer);
         return $buffer;
     }
         
