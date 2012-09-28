@@ -114,7 +114,7 @@ class Memcache implements StorageMedia {
         }
         
         $this->_mco = new \Memcache();
-        $this->_mco->setCompressThreshold(0);
+        $this->_mco->setCompressThreshold(2000,1);
 
     }
     
