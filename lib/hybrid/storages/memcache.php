@@ -114,8 +114,7 @@ class Memcache implements StorageMedia {
         }
         
         $this->_mco = new \Memcache();
-        $this->_mco->setCompressThreshold(2000,1);
-
+        
     }
     
     public function connect() {
@@ -127,6 +126,7 @@ class Memcache implements StorageMedia {
         $this->_conected = true;
         
         $this->_mco->connect($this->_host, $this->_port);
+        $this->_mco->setCompressThreshold(0,0);
     }
     
     public function setFormat($format) {
