@@ -110,12 +110,12 @@ class PDO implements StorageMedia {
 
         if (is_null($conString)) {
             if (defined('PDO_CONNECTION_STRING')) {
-                $this->conString = PDO_CONNECTION_STRING;
+                $this->_conString = PDO_CONNECTION_STRING;
             } else {
                 throw new \Exception('PDO Storage needs the connection string');
             }
         } else {
-            $this->conString = (string) $conString;
+            $this->_conString = (string) $conString;
         }
 
         $this->_user = $user;
@@ -130,7 +130,7 @@ class PDO implements StorageMedia {
             throw new \Exception('PDO storage media already connected!');
         }
 
-        $this->_pdoConnector = new PDOLib($this->_conString, $user, $password);
+        $this->_pdoConnector = new PDOLib($this->_conString, $this->_user, $this->_password);
         $this->_pdoConnector->setAttribute(PDOLib::ATTR_ERRMODE, PDOLib::ERRMODE_EXCEPTION);
         $this->_connected = true;
  
