@@ -152,9 +152,11 @@ class PDO implements StorageMedia {
             SELECT
                 value
             FROM
-                :table 
+                TABLE 
             WHERE
-                key = :key;
+                key = :key
+            AND 
+                TABLE = :table;
         ");
 
         $query->execute(array(
@@ -179,10 +181,12 @@ class PDO implements StorageMedia {
 
         $query = $this->_pdoConnector->prepare("
             REPLACE INTO
-                :table 
+                TABLE
                     (key, value)
             VALUES
-                (:key, :value);
+                (:key, :value)
+            WHERE
+                TABLE = :table;
         ");
 
         $query->execute(array(
