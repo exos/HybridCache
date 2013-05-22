@@ -43,10 +43,6 @@ class Cache {
     const S_EXPIRED = 6;
     const S_TRANSFERED = 7;
     
-    const K_SERIALIZED_MD5 = '/^[a-f0-9]{32}$';
-    const K_SERIALIZED_SHA1 = '/^[a-f0-9]{40}$';
-    const K_UNSERIALIZED_URL = false;
-    
     const B_HASH = 10;
     const B_RANDOM = 20;
     
@@ -64,8 +60,8 @@ class Cache {
     protected $_prefix = "";
     
     /**
-     * Identificador (nombre ??nico)
-     * @var string
+     * Identificador (nombre)
+     * @var Hybrid\IdentifierKey 
      */
     
     protected $_identifier;
@@ -149,13 +145,11 @@ class Cache {
      */
     
     public $pool_max_resets;
-    
+
     /*
-     * Metodo utilizado para encodear la key
+     * Guardar la data en plano (sin metadata), se pierden los estados
      */
-    
-    public $encode_key_method;
-    
+
     private $save_clean;
     
     /*
@@ -180,15 +174,13 @@ class Cache {
      */
     
     public static function create () {
-        
+
+        $args = func_get_args();
+
         if (func_num_args() == 1) {
-            if ($this->isValidKey(func_get_arg(0))) {
-                $identifier = func_get_arg(0);
-            } else {
-                $identifier = $this->encodeKey(func_get_args());
-            }
+            $identifier = new IdentifierKey($args[0]);
         } else {
-            $identifier = $this->encodeKey(func_get_args());
+            $identifier = new IdentifierKey(func_get_args()); 
         }
         
         if (static::$use_pool) {
@@ -215,15 +207,13 @@ class Cache {
      */
     
     public function __construct() {
-        
-        if (func_num_args() == 1) {
-            if ($this->isValidKey(func_get_arg(0))) {
-                $identifier = func_get_arg(0);
-            } else {
-                $identifier = $this->encodeKey(func_get_args());
-            }
+
+        $args = func_get_args();
+
+        if (func_num_args() == 1 && $args[0] instanceof IdentifierKey) {
+            $identifier = $args[0];
         } else {
-            $identifier = $this->encodeKey(func_get_args());
+            $identifier = new IdentifierKey($args); 
         }
         
         $this->__created = microtime(true);
@@ -244,57 +234,7 @@ class Cache {
         $this->save_clean = $cond;
     }
     
-    /*
-     * Check key
-     */
-     
-    protected function isValidKey($key) {
         
-        if ($this->encode_key_method) {
-            return preg_match($this->encode_key_method, $key);
-        } else {
-            return true;
-        }
-        
-    }
-    
-    /*
-     * Encode key
-     */
-    
-    protected function encodeKey($targs) {
-    
-        switch ($this->encode_key_method) {
-        
-            case self::K_SERIALIZED_MD5:
-                return md5(serialize($targs));
-            case self::K_SERIALIZED_SHA1:
-                return sha1(serialize($targs));
-            case self::K_UNSERIALIZED_URL:
-                if (is_string($targs)) {
-                    return $targs;
-                }
-                
-                if (is_array($targs)) {
-                    if (count($targs) > 1) {
-                        throw new Exception('The method K_UNSERIALIZED_URL needs to receive a unique string as indetifier');
-                    }
-                    
-                    if (isset($targs[0]) && is_string($targs[0])) {
-                        return $targs[0];
-                    } else {
-                        throw new Exception('Error reciving identifier, the K_UNSERIALIZED_URL methods needs a simple string');
-                    }
-                    
-                }
-                break;
-                
-            default:
-                throw new Exception('Key encode method not implemented');
-        }
-    
-    }
-    
     /*
      * Clear object, set all properties to null
      */
@@ -304,7 +244,7 @@ class Cache {
         $this->_metadata = null;
         $this->_status   = null;
         
-        $this->_identifier      = null;
+        $this->_identifier  = null;
         $this->timeLimit	= null;
         $this->dtimeLimit	= null;
         $this->expireWaitingTime= null;
@@ -319,16 +259,15 @@ class Cache {
      * @param string    identifier      Final identifier
      */
     
-    public function reset($identifier) {
+    public function reset(IdentifierKey $identifier) {
         
-        $this->_identifier      = $identifier;
+        $this->_identifier  = $identifier;
         $this->timeLimit	= defined('CACHE_EXPIRE_TIME') ? CACHE_EXPIRE_TIME		: 3600;
         $this->dtimeLimit	= defined('CACHE_DEPRECATED_LIMIT') ? CACHE_DEPRECATED_LIMIT	: 3600*1.2;
         $this->expireWaitingTime= defined('CACHE_EXPIRE_WAITING') ? CACHE_EXPIRE_WAITING	: 5;
         $this->_prefix		= defined('CACHE_PREFIX') ? CACHE_PREFIX 			: (isset($_SERVER['HOST']) ? isset($_SERVER['HOST']) : '') ;
         $this->balanceMethod	= defined('CACHE_BALANCE_METHOD') ? CACHE_BALANCE_METHOD	: self::B_HASH;
         $this->pool_max_resets	= defined('CACHE_POOL_MAXRESETS') ? CACHE_POOL_MAXRESETS	: 5;
-        $this->encode_key_method = defined('CACHE_KEY_ENCODE_METHOD') ? CACHE_KEY_ENCODE_METHOD   : self::K_SERIALIZED_SHA1;
         $this->save_clean       = defined('CACHE_SAVE_CLEAN') ? CACHE_SAVE_CLEAN   : false;
         
         $this->_metadata = null;
@@ -385,7 +324,7 @@ class Cache {
     }
     
     public function setPrefix ($prefix) {
-	$this->_prefix = $prefix;
+    	$this->_prefix = $prefix;
     }
     
     protected function get () {
@@ -393,7 +332,7 @@ class Cache {
         switch ($this->balanceMethod) {
             
             case self::B_HASH:
-                $n = abs(crc32(substr($this->_identifier,0,4)) % count($this->_storages[self::FOR_READ]));
+                $n = abs(crc32(substr((string) $this->_identifier,0,4)) % count($this->_storages[self::FOR_READ]));
                 
                 $sinst = $this->_storages[self::FOR_READ][$n];
                 
@@ -403,7 +342,7 @@ class Cache {
                     $sinst->connected = true;
                 }
                 
-                return $sinst->store->get($this->_identifier);
+                return $sinst->store->get((string) $this->_identifier);
                 
             case self::B_RANDOM:
                 
@@ -417,7 +356,7 @@ class Cache {
                         $sinst->connected = true;
                     }
                     
-                    if ($val = $sinst->get($this->_identifier)) {
+                    if ($val = $sinst->get((string) $this->_identifier)) {
                         return $val;
                     }
                     
@@ -434,7 +373,7 @@ class Cache {
         switch ($this->balanceMethod) {
             
             case self::B_HASH:
-                $n = abs(crc32(substr($this->_identifier,0,4)) % count($this->_storages[self::FOR_WRITE]));
+                $n = abs(crc32(substr((string) $this->_identifier,0,4)) % count($this->_storages[self::FOR_WRITE]));
                 break;
             case self::B_RANDOM:
                 $n = rand(0,count($this->_storages[self::FOR_WRITE])-1);
@@ -450,7 +389,7 @@ class Cache {
             $sinst->connected = true;
         }
 
-        $sinst->store->set($this->_identifier,$val,$expire);
+        $sinst->store->set((string) $this->_identifier,$val,$expire);
         
     }
     
@@ -553,7 +492,7 @@ class Cache {
         
         if (!$md) {
             $md = array(
-                'identifier' => $this->_identifier,
+                'identifier' => (string) $this->_identifier,
                 'created'   => time(),
                 'updating'  => time(),
                 'status'    => $status,
