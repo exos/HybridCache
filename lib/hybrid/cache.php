@@ -25,7 +25,7 @@
  * Cache
  *
  * @author Oscar J. Gentilezza Arenas (a.k.a exos) <oscar@gentisoft.com>
- * @version 0.9.0
+ * @version 0.9.5
  * @package Hybrid
  * @license WTFPL 2.0, http://sam.zoy.org/wtfpl/
  */
