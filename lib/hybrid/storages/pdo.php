@@ -150,7 +150,7 @@ class PDO implements StorageMedia {
 
         $query = $this->_pdoConnector->prepare("
             SELECT
-                value
+                dvalue 
             FROM
                 TABLE_NAME 
             WHERE
@@ -182,7 +182,7 @@ class PDO implements StorageMedia {
         $query = $this->_pdoConnector->prepare("
             REPLACE INTO
                 TABLE_NAME
-                    (uidkey, value)
+                    (uidkey, dvalue)
             VALUES
                 (:key, :value)
             WHERE
