@@ -154,7 +154,7 @@ class PDO implements StorageMedia {
             FROM
                 TABLE_NAME 
             WHERE
-                key = :key
+                uidkey = :key
             AND 
                 TABLE_NAME = :table;
         ");
@@ -182,7 +182,7 @@ class PDO implements StorageMedia {
         $query = $this->_pdoConnector->prepare("
             REPLACE INTO
                 TABLE_NAME
-                    (key, value)
+                    (uidkey, value)
             VALUES
                 (:key, :value)
             WHERE
