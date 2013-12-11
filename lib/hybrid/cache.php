@@ -328,7 +328,11 @@ class Cache {
     }
     
     protected function get () {
-    
+
+        if (!count($this->_storages[self::FOR_READ])) {
+            throw new \Exception("No storage media for read");
+        }
+
         switch ($this->balanceMethod) {
             
             case self::B_HASH:
@@ -368,7 +372,10 @@ class Cache {
     }
     
     protected function set ($val,$expire) {
-        
+
+        if (!count($this->_storages[self::FOR_WRITE])) {
+            throw new \Exception("No storage media for write");
+        }
         
         switch ($this->balanceMethod) {
             
