@@ -1,9 +1,9 @@
 <?php
 
-require('../lib/init.php');
+require('../vendor/autoload.php');
 
 use Hybrid\Cache;
-use Hybrid\storages\Redis as RedisStorage;
+use Hybrid\Storages\Redis as RedisStorage;
 
 
 // Set your host/port

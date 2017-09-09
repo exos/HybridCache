@@ -1,0 +1,42 @@
+{
+    "name": "exos/HybridCache",
+    "version": "0.9.7",
+    "type": "library",
+    "keywords": ["cache","redis", "memcache"],
+    "description": "PHP Cache manager with multiple storages types",
+    "homepage": "https://github.com/exos/HybridCache",
+    "license": "WTFPL",
+    "authors": [
+        {
+            "name": "Oscar Gentilezza (a.k.a exos)",
+            "email": "oscar@gentisoft.com",
+            "homepage": "https://log.exos.ninja",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^5.3.3 || ^7.0"
+    },
+    "suggest": {
+        "ext-memcache": "For memcached storage support",
+        "ext-redis": "For redis storage support",
+        "ext-pdo": "For PDO storage support"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hybrid\\": "lib/hybrid"
+        }
+    },
+    "archive": {
+        "exclude": [
+            "README.md",
+            "example"
+        ]
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/exos/HybridCache.git"
+        }
+    ]
+}
