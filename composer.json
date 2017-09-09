@@ -1,5 +1,5 @@
 {
-    "name": "exos/HybridCache",
+    "name": "exos/hybridcache",
     "version": "0.9.7",
     "type": "library",
     "keywords": ["cache","redis", "memcache"],
