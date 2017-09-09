@@ -1,9 +1,9 @@
 <?php
 
-require('../lib/init.php');
+require('../vendor/autoload.php');
 
 use Hybrid\Cache;
-use Hybrid\storages\Memcache as MemcacheStorage;
+use Hybrid\Storages\Memcache as MemcacheStorage;
 
 
 // Set your host/port

@@ -7,12 +7,12 @@ Example of usage:
 <?php
 
 // require init.php for autoload classes
-require('lib/init.php');
+require('vendor/autoload.php');
 
 use Hybrid\Cache;
+
 // Use other name for no conflicts with Memcache Class
 use Hybrid\Storages\Memcache as MemcacheStorage;
-
 
 // add a MediaStorage to the Cache class:
 Cache::addStorageMedia( new MemcacheStorage('localhost') );
@@ -21,6 +21,14 @@ Cache::addStorageMedia( new MemcacheStorage('localhost') );
 $cache = Cache::create(__FILE__, 'list top users');
 
 // check if cache exists and is aviable
+
+
+$data = $cache->getCacheOr(true, function ($cache) {
+    // make your heavy processing.... (saving the result in a variable)
+    return $result;
+});
+
+// Or...
 
 if ($data = $cache->getCache(true)) {
    // dump cached data

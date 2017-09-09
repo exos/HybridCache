@@ -1,12 +1,12 @@
 <?php
 
-require('../lib/init.php');
+require('../vendor/autoload.php');
 
 define('CACHE_DATA_FOLDER', dirname(__FILE__)."/cache-folder");
 
 use Hybrid\Cache;
 use Hybrid\PageCache;
-use Hybrid\storages\Redis as RedisStorage;
+use Hybrid\Storages\Redis as RedisStorage;
 
 $storage = new RedisStorage();
 $storage->setFormat(RedisStorage::F_CLEAN);

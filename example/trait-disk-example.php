@@ -1,11 +1,11 @@
 <?php
 
-require('../lib/init.php');
+require('../vendor/autoload.php');
 
 define('CACHE_DATA_FOLDER', dirname(__FILE__)."/cache-folder");
 
 use Hybrid\Cache;
-use Hybrid\storages\Disk as DiskStorage;
+use Hybrid\Storages\Disk as DiskStorage;
 
 class ExampleClass {
     
